@@ -41,6 +41,12 @@ class Request
     private $limit = 10;
 
     /**
+     * Timeout query argument on requests
+     * @var int
+     */
+    private $timeout = 4;
+
+    /**
      * Map entity names to API URLs
      * @var string[]
      */
@@ -80,9 +86,10 @@ class Request
      * @param mixed $methodNameEntityMap
      * @param int $offset
      * @param int $limit
+     * @param int $timeout
      * @return Request
      */
-    public function __construct(Credentials $credentials, array $endPointUrls = array(), array $methodNameEntityMap = array(), $offset = 0, $limit = 10)
+    public function __construct(Credentials $credentials, array $endPointUrls = array(), array $methodNameEntityMap = array(), $offset = 0, $limit = 10, $timeout = 4)
     {
         if (!function_exists('curl_init')) {
             throw new \RuntimeException('Function curl_init does not exist.');
@@ -102,6 +109,7 @@ class Request
 
         $this->setOffset($offset);
         $this->setLimit($limit);
+        $this->setTimeout($timeout);
     }
 
 
@@ -184,7 +192,7 @@ class Request
         curl_setopt($curlHandle, CURLOPT_SSL_VERIFYPEER, false);
 		curl_setopt($curlHandle, CURLOPT_SSL_VERIFYHOST, 2);
 
-		curl_setopt($curlHandle, CURLOPT_TIMEOUT, 4);
+		curl_setopt($curlHandle, CURLOPT_TIMEOUT, $this->timeout);
 
         curl_setopt($curlHandle, CURLOPT_FOLLOWLOCATION, true);
 
@@ -318,6 +326,19 @@ class Request
         }
 
         $this->offset = $offset;
+    }
+
+    /**
+     * Set the timeout for GET requests
+     * @param mixed $timeout
+     */
+    public function setTimeout($timeout)
+    {
+        if (!ctype_digit($timeout) && !is_int($timeout)) {
+            throw new \InvalidArgumentException('timeout should be a number');
+        }
+
+        $this->timeout = $timeout;
     }
 
     /**
